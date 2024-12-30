@@ -4,22 +4,46 @@ class MusicPlayer {
         this.isPlaying = false;
         this.isLooping = false;
         
-        // DOM Elements
-        this.playPauseBtn = document.querySelector('#play-pause-btn');
-        this.loopBtn = document.querySelector('#loop-btn');
-        this.prevBtn = document.querySelector('#prev-btn');
-        this.nextBtn = document.querySelector('#next-btn');
-        this.volumeBtn = document.querySelector('#volume-btn');
-        this.progressBar = document.querySelector('.progress-bar');
-        this.progress = document.querySelector('.progress');
-        this.currentTime = document.querySelector('.current');
-        this.duration = document.querySelector('.duration');
-        this.albumArt = document.querySelector('#album-art');
-        this.songTitle = document.querySelector('#song-title');
-        this.artistName = document.querySelector('#artist-name');
-        this.fileInput = document.querySelector('#song-upload');
+        // Add error state
+        this.hasError = false;
 
-        this.initializeEventListeners();
+        // Cache DOM Elements with error handling
+        try {
+            this.initializeDOMElements();
+        } catch (error) {
+            console.error('Failed to initialize DOM elements:', error);
+            this.hasError = true;
+        }
+
+        if (!this.hasError) {
+            this.initializeEventListeners();
+        }
+    }
+
+    initializeDOMElements() {
+        const elements = {
+            'playPauseBtn': '#play-pause-btn',
+            'loopBtn': '#loop-btn',
+            'prevBtn': '#prev-btn',
+            'nextBtn': '#next-btn',
+            'volumeBtn': '#volume-btn',
+            'progressBar': '.progress-bar',
+            'progress': '.progress',
+            'currentTime': '.current',
+            'duration': '.duration',
+            'albumArt': '#album-art',
+            'songTitle': '#song-title',
+            'artistName': '#artist-name',
+            'fileInput': '#song-upload'
+        };
+
+        for (const [key, selector] of Object.entries(elements)) {
+            const element = document.querySelector(selector);
+            if (!element) {
+                throw new Error(`Required element ${selector} not found`);
+            }
+            this[key] = element;
+        }
     }
 
     initializeEventListeners() {
@@ -83,61 +107,86 @@ class MusicPlayer {
 
     loadFile(e) {
         const file = e.target.files[0];
-        if (file) {
-            const fileURL = URL.createObjectURL(file);
-            this.audio.src = fileURL;
-            this.songTitle.textContent = file.name.replace(/\.[^/.]+$/, "");
-            this.artistName.textContent = "Unknown Artist";
-            
-            // Set default album art with fade effect
-            this.albumArt.style.opacity = '0';
-            this.albumArt.src = 'assets/default-album-art.png';
-            setTimeout(() => this.albumArt.style.opacity = '1', 100);
-            
-            // Load metadata and album art
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const metadata = await musicMetadata.parseBlob(file);
-                    
-                    // Update artist name if available
-                    if (metadata.common.artist) {
-                        this.artistName.textContent = metadata.common.artist;
-                    }
-                    
-                    // Handle album art with better error handling and transitions
-                    if (metadata.common.picture && metadata.common.picture.length > 0) {
-                        const picture = metadata.common.picture[0];
-                        const blob = new Blob([picture.data], { type: picture.format });
-                        const imageUrl = URL.createObjectURL(blob);
-                        
-                        // Create a temporary image to verify the loaded image
-                        const tempImg = new Image();
-                        tempImg.onload = () => {
-                            this.albumArt.style.opacity = '0';
-                            setTimeout(() => {
-                                this.albumArt.src = imageUrl;
-                                this.albumArt.style.opacity = '1';
-                            }, 300);
-                        };
-                        tempImg.onerror = () => {
-                            console.error("Failed to load album art");
-                            // Keep default album art if image fails to load
-                        };
-                        tempImg.src = imageUrl;
-                        
-                        // Clean up the old object URL
-                        this.albumArt.onload = () => {
-                            URL.revokeObjectURL(imageUrl);
-                        };
-                    }
-                } catch (error) {
-                    console.error("Error reading metadata:", error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
+        if (!file) return;
 
-            this.play();
+        // Validate file type
+        if (!file.type.startsWith('audio/')) {
+            alert('Please select a valid audio file');
+            return;
+        }
+
+        // Clean up previous object URL if it exists
+        if (this.audio.src) {
+            URL.revokeObjectURL(this.audio.src);
+        }
+
+        const fileURL = URL.createObjectURL(file);
+        this.audio.src = fileURL;
+        this.songTitle.textContent = file.name.replace(/\.[^/.]+$/, "");
+        this.artistName.textContent = "Unknown Artist";
+        
+        // Set default album art immediately
+        this.updateAlbumArt('assets/default-album-art.png');
+        
+        // Use jsmediatags instead of music-metadata-browser
+        jsmediatags.read(file, {
+            onSuccess: (tag) => {
+                if (tag.tags.title) {
+                    this.songTitle.textContent = tag.tags.title;
+                }
+                if (tag.tags.artist) {
+                    this.artistName.textContent = tag.tags.artist;
+                }
+                if (tag.tags.picture) {
+                    this.handleAlbumArt(tag.tags.picture);
+                }
+            },
+            onError: (error) => {
+                console.error('Error reading tags:', error);
+            }
+        });
+
+        this.play();
+    }
+
+    handleAlbumArt(picture) {
+        const { data, format } = picture;
+        let base64String = "";
+        for (let i = 0; i < data.length; i++) {
+            base64String += String.fromCharCode(data[i]);
+        }
+        const imageUrl = `data:${format};base64,${window.btoa(base64String)}`;
+        this.updateAlbumArt(imageUrl);
+    }
+
+    updateAlbumArt(src) {
+        this.albumArt.style.opacity = '0';
+        setTimeout(() => {
+            this.albumArt.src = src;
+            this.albumArt.style.opacity = '1';
+        }, 300);
+    }
+
+    updateTrackMetadata(metadata) {
+        if (metadata.common.artist) {
+            this.artistName.textContent = metadata.common.artist;
+        }
+
+        if (metadata.common.picture?.[0]) {
+            const picture = metadata.common.picture[0];
+            const blob = new Blob([picture.data], { type: picture.format });
+            const imageUrl = URL.createObjectURL(blob);
+            
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                this.updateAlbumArt(imageUrl);
+                URL.revokeObjectURL(imageUrl);
+            };
+            tempImg.onerror = () => {
+                console.error("Failed to load album art");
+                URL.revokeObjectURL(imageUrl);
+            };
+            tempImg.src = imageUrl;
         }
     }
 
