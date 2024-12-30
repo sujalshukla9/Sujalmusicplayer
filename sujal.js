@@ -89,40 +89,47 @@ class MusicPlayer {
             this.songTitle.textContent = file.name.replace(/\.[^/.]+$/, "");
             this.artistName.textContent = "Unknown Artist";
             
-            console.log('File loaded:', file.name);
-            
-            // Set default album art immediately
+            // Set default album art with fade effect
+            this.albumArt.style.opacity = '0';
             this.albumArt.src = 'assets/default-album-art.png';
+            setTimeout(() => this.albumArt.style.opacity = '1', 100);
             
             // Load metadata and album art
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    console.log('FileReader loaded successfully');
-                    
-                    // Using the music-metadata-browser library
                     const metadata = await musicMetadata.parseBlob(file);
-                    console.log('Metadata:', metadata);
                     
                     // Update artist name if available
                     if (metadata.common.artist) {
                         this.artistName.textContent = metadata.common.artist;
                     }
                     
-                    // Update album art if available
+                    // Handle album art with better error handling and transitions
                     if (metadata.common.picture && metadata.common.picture.length > 0) {
-                        console.log('Album art found in metadata');
                         const picture = metadata.common.picture[0];
                         const blob = new Blob([picture.data], { type: picture.format });
                         const imageUrl = URL.createObjectURL(blob);
-                        this.albumArt.src = imageUrl;
                         
-                        // Clean up the old object URL when loading a new image
+                        // Create a temporary image to verify the loaded image
+                        const tempImg = new Image();
+                        tempImg.onload = () => {
+                            this.albumArt.style.opacity = '0';
+                            setTimeout(() => {
+                                this.albumArt.src = imageUrl;
+                                this.albumArt.style.opacity = '1';
+                            }, 300);
+                        };
+                        tempImg.onerror = () => {
+                            console.error("Failed to load album art");
+                            // Keep default album art if image fails to load
+                        };
+                        tempImg.src = imageUrl;
+                        
+                        // Clean up the old object URL
                         this.albumArt.onload = () => {
                             URL.revokeObjectURL(imageUrl);
                         };
-                    } else {
-                        console.log('No album art found in metadata');
                     }
                 } catch (error) {
                     console.error("Error reading metadata:", error);
