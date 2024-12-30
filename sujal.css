@@ -1,0 +1,164 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --text-color: #ecf0f1;
+    --progress-color: #e74c3c;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #141e30, #243b55);
+}
+
+.music-player {
+    width: 350px;
+    padding: 25px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.music-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.song-image {
+    width: 250px;
+    height: 250px;
+    margin: 25px 0;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.song-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.song-image img:hover {
+    transform: scale(1.05);
+}
+
+.song-details {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.song-details h2 {
+    color: var(--text-color);
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.song-details p {
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.progress-area {
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.progress-bar {
+    height: 6px;
+    width: 100%;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    position: relative;
+}
+
+.progress {
+    position: absolute;
+    height: 100%;
+    width: 0%;
+    background: var(--progress-color);
+    border-radius: 10px;
+    transition: width 0.1s linear;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: var(--text-color);
+    font-size: 0.9em;
+}
+
+.controls {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.ctrl-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-color);
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ctrl-btn:hover {
+    background: var(--secondary-color);
+    transform: scale(1.1);
+}
+
+#play-pause-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 1.5em;
+}
+
+.file-upload {
+    width: 100%;
+    text-align: center;
+}
+
+.upload-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Animation Classes */
+.playing {
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

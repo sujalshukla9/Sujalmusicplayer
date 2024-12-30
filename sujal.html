@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sujal's Music</title>
+    <link rel="stylesheet" href="sujal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="description" content="Music player web application">
+</head>
+<body>
+    <div class="music-player">
+        <div class="music-box">
+            <div class="song-image">
+                <img src="" alt="Album Art" id="album-art">
+            </div>
+            
+            <div class="song-details">
+                <h2 id="song-title">No song selected</h2>
+                <p id="artist-name">Upload a song to play</p>
+            </div>
+
+            <div class="progress-area">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="time">
+                    <span class="current" id="current-time">0:00</span>
+                    <span class="duration" id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="loop-btn" class="ctrl-btn" aria-label="Loop">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button id="prev-btn" class="ctrl-btn" aria-label="Previous">
+                    <i class="fas fa-backward"></i>
+                </button>
+                <button id="play-pause-btn" class="ctrl-btn" aria-label="Play">
+                    <i class="fas fa-play" id="play-icon"></i>
+                </button>
+                <button id="next-btn" class="ctrl-btn">
+                    <i class="fas fa-forward"></i>
+                </button>
+                <button id="volume-btn" class="ctrl-btn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+
+            <div class="file-upload">
+                <input type="file" id="song-upload" accept="audio/*" hidden>
+                <label for="song-upload" class="upload-btn">
+                    <i class="fas fa-upload"></i> Choose Song
+                </label>
+            </div>
+
+            <div class="volume-slider" id="volume-slider" style="display: none;">
+                <input type="range" min="0" max="100" value="100" id="volume-range">
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/music-metadata-browser@latest/dist/music-metadata-browser.js"></script>
+    <script src="sujal.js"></script>
+</body>
+</html>
