@@ -141,6 +141,7 @@ body {
 .file-upload {
     width: 100%;
     text-align: center;
+    padding-bottom:10px;
 }
 
 .upload-btn {
@@ -185,7 +186,6 @@ body {
     bottom: 30px;
     left: 0;
     right: 0;
-    padding-bottom: 10px;
 }
 
 .social-link {
