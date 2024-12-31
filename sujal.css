@@ -22,7 +22,7 @@ body {
 
 .music-player {
     width: 350px;
-    padding: 25px 25px 70px 25px;
+    padding: 20px 20px 60px 20px;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -141,7 +141,7 @@ body {
 .file-upload {
     width: 100%;
     text-align: center;
-    padding-bottom:15px;
+    margin-bottom: 27px;
 }
 
 .upload-btn {
