@@ -2,7 +2,7 @@
     --primary-color: #2c3e50;
     --secondary-color: #3498db;
     --text-color: #ecf0f1;
-    --progress-color: #e74c3c;
+    --progress-color: #3498db;
 }
 
 * {
@@ -94,9 +94,9 @@ body {
     position: absolute;
     height: 100%;
     width: 0%;
-    background: var(--progress-color);
+    background: #3498db;
     border-radius: 10px;
-    transition: width 0.1s linear;
+    transition: width 0.2s ease-in-out;
 }
 
 .time {
@@ -124,7 +124,7 @@ body {
     color: var(--text-color);
     font-size: 1.2em;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ctrl-btn:hover {
@@ -151,7 +151,7 @@ body {
     color: var(--text-color);
     border-radius: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .upload-btn:hover {
@@ -192,7 +192,7 @@ body {
     color: var(--text-color);
     font-size: 24px;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0.8;
 }
 
