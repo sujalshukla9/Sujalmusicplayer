@@ -52,6 +52,13 @@ class MusicPlayer {
         
         // Initialize loop button
         this.initializeLoopButton();
+
+        // Add volume button
+        this.volumeBtn = document.getElementById('volume-btn');
+        this.lastVolume = 1.0; // Store the last volume level
+        
+        // Initialize volume button
+        this.initializeVolumeButton();
     }
 
     initializeEventListeners() {
@@ -76,31 +83,26 @@ class MusicPlayer {
 
     async selectFolder() {
         try {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (!isMobile && window.showDirectoryPicker) {
-                // Use modern directory picker API for desktop browsers that support it
-                try {
-                    const dirHandle = await window.showDirectoryPicker();
-                    await this.loadSongs(dirHandle);
-                    return;
-                } catch (e) {
-                    console.log('Directory picker failed, falling back to file input');
-                    // Fall through to file input method if directory picker fails
-                }
-            }
-            
-            // Fallback to file input method
             const input = document.createElement('input');
             input.type = 'file';
             input.multiple = true;
             input.accept = 'audio/*,.mp3,.wav,.ogg,.m4a';
+
+            // Check if it's a mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (!isMobile) {
-                // Set these attributes for desktop browsers
-                input.setAttribute('webkitdirectory', '');
-                input.setAttribute('directory', '');
-                input.setAttribute('mozdirectory', '');
+                // Try all possible directory attributes for maximum browser compatibility
+                try {
+                    input.webkitdirectory = true;
+                    input.directory = true;
+                    input.mozdirectory = true;
+                    input.setAttribute('webkitdirectory', '');
+                    input.setAttribute('directory', '');
+                    input.setAttribute('mozdirectory', '');
+                } catch (e) {
+                    console.log('Directory attributes not supported, falling back to file input');
+                }
             }
 
             // Use promise to handle file selection
@@ -407,18 +409,7 @@ class MusicPlayer {
     changeVolume(delta) {
         const newVolume = Math.max(0, Math.min(1, this.audio.volume + delta));
         this.audio.volume = newVolume;
-        
-        // Update volume icon if you have one
-        const volumeBtn = document.getElementById('volume-btn');
-        if (volumeBtn) {
-            if (newVolume === 0) {
-                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-            } else if (newVolume < 0.5) {
-                volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
-            } else {
-                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-            }
-        }
+        this.updateVolumeIcon(newVolume);
     }
 
     // Add progress bar dragging functionality
@@ -469,6 +460,42 @@ class MusicPlayer {
                 this.loopBtn.style.color = ''; // Reset to default color
             }
         });
+    }
+
+    initializeVolumeButton() {
+        if (!this.volumeBtn) return;
+
+        this.volumeBtn.addEventListener('click', () => {
+            if (this.audio.volume > 0) {
+                // If volume is not 0, store it and mute
+                this.lastVolume = this.audio.volume;
+                this.audio.volume = 0;
+                this.volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                // If muted, restore to last volume
+                this.audio.volume = this.lastVolume;
+                if (this.lastVolume >= 0.5) {
+                    this.volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    this.volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+                }
+            }
+        });
+
+        // Update initial volume icon
+        this.updateVolumeIcon(this.audio.volume);
+    }
+
+    updateVolumeIcon(volume) {
+        if (!this.volumeBtn) return;
+        
+        if (volume === 0) {
+            this.volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        } else if (volume < 0.5) {
+            this.volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+        } else {
+            this.volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        }
     }
 }
 
