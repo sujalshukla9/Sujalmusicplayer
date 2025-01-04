@@ -18,7 +18,7 @@
             
             <div class="song-details">
                 <h2 id="song-title">No song selected</h2>
-                <p id="artist-name">Upload a song to play</p>
+                <p id="artist-name">Select a folder to play music</p>
             </div>
 
             <div class="progress-area">
@@ -49,23 +49,33 @@
                 </button>
             </div>
 
-            <div class="file-upload">
-                <input type="file" id="song-upload" accept="audio/*" hidden>
-                <label for="song-upload" class="upload-btn">
-                    <i class="fas fa-upload"></i> Choose Song
-                </label>
-            </div>
-
             <div class="volume-slider" id="volume-slider" style="display: none;">
                 <input type="range" min="0" max="100" value="100" id="volume-range">
             </div>
+
+            <div class="folder-select">
+                <button id="select-folder" class="folder-btn">
+                    <i class="fas fa-folder-open"></i> Select Music Folder
+                </button>
+            </div>
         </div>
-          <div class="social">
-            <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="social-link"><i class="fa-brands fa-github"></i></a>
-        </div>
+
+        <!-- Songs list moved here -->
+        <div id="songs-list" class="songs-list"></div>
     </div>
-</div>
+
+    <!-- Add social links -->
+    <div class="social-links">
+        <a href="https://www.instagram.com/sujal_shrestha_2004/" target="_blank" class="social-link">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://github.com/sujalshrestha9" target="_blank" class="social-link">
+            <i class="fab fa-github"></i>
+        </a>
+        <a href="https://www.facebook.com/sujal.shrestha.9047" target="_blank" class="social-link">
+            <i class="fab fa-facebook"></i>
+        </a>
+    </div>
     <script src="https://kit.fontawesome.com/3772e11d79.js" crossorigin="anonymous"></script>     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script src="sujal.js"></script>
