@@ -76,67 +76,78 @@ class MusicPlayer {
 
     async selectFolder() {
         try {
-            // Check if File System Access API is supported
-            if ('showDirectoryPicker' in window) {
-                const dirHandle = await window.showDirectoryPicker();
-                await this.loadSongs(dirHandle);
-            } else {
-                // Fallback for devices without File System Access API
+            // Check if it's a mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // Always use the file input method for mobile devices
+            if (isMobile || !('showDirectoryPicker' in window)) {
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.multiple = true;
-                input.accept = 'audio/*';
-                input.webkitdirectory = true; // For older browsers
-                input.directory = true; // For newer browsers
+                input.accept = 'audio/*,.mp3,.wav,.ogg,.m4a'; // Explicitly list audio formats
+                
+                // Only add directory attributes for desktop browsers
+                if (!isMobile) {
+                    input.webkitdirectory = true;
+                    input.directory = true;
+                }
 
-                input.onchange = async (e) => {
-                    const files = Array.from(e.target.files).filter(file => 
-                        file.type.startsWith('audio/') || 
-                        file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
-                    );
+                // Use promise to handle file selection
+                const files = await new Promise((resolve) => {
+                    input.onchange = (e) => resolve(Array.from(e.target.files));
+                    input.click();
+                });
 
-                    if (files.length === 0) {
-                        this.songsList.innerHTML = '<div class="no-songs">No music files found</div>';
-                        return;
-                    }
+                // Filter audio files
+                const audioFiles = files.filter(file => 
+                    file.type.startsWith('audio/') || 
+                    file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
+                );
 
-                    // Clear existing songs
-                    this.songsList.innerHTML = '';
-                    this.songs = [];
+                if (audioFiles.length === 0) {
+                    this.songsList.innerHTML = '<div class="no-songs">No music files found</div>';
+                    return;
+                }
 
-                    // Process each file
-                    files.forEach((file, index) => {
-                        const songIndex = this.songs.length;
-                        this.songs.push({ 
-                            handle: file, // Store the File object instead of FileSystemFileHandle
-                            name: file.name 
-                        });
+                // Clear existing songs
+                this.songsList.innerHTML = '';
+                this.songs = [];
 
-                        const songItem = document.createElement('div');
-                        songItem.className = 'song-item';
-                        songItem.innerHTML = `
-                            <div class="song-art">
-                                <img src="assets/default-album-art.png" alt="Album Art">
-                            </div>
-                            <div class="song-info">
-                                <span class="song-name">${file.name}</span>
-                                <span class="song-artist">Unknown Artist</span>
-                            </div>
-                        `;
-
-                        songItem.addEventListener('click', () => this.playSong(songIndex));
-                        this.songsList.appendChild(songItem);
-                        this.loadSongMetadata(file, songItem);
+                // Process each file
+                audioFiles.forEach((file) => {
+                    const songIndex = this.songs.length;
+                    this.songs.push({ 
+                        handle: file,
+                        name: file.name 
                     });
-                };
 
-                input.click();
+                    const songItem = document.createElement('div');
+                    songItem.className = 'song-item';
+                    songItem.innerHTML = `
+                        <div class="song-art">
+                            <img src="assets/default-album-art.png" alt="Album Art">
+                        </div>
+                        <div class="song-info">
+                            <span class="song-name">${file.name}</span>
+                            <span class="song-artist">Unknown Artist</span>
+                        </div>
+                    `;
+
+                    songItem.addEventListener('click', () => this.playSong(songIndex));
+                    this.songsList.appendChild(songItem);
+                    this.loadSongMetadata(file, songItem);
+                });
+            } else {
+                // Use directory picker for desktop browsers that support it
+                const dirHandle = await window.showDirectoryPicker();
+                await this.loadSongs(dirHandle);
             }
+
             this.songsList.style.display = 'block';
         } catch (error) {
             console.error('Error selecting folder:', error);
             // Show user-friendly error message
-            this.songsList.innerHTML = '<div class="no-songs">Unable to access files. Please try again.</div>';
+            this.songsList.innerHTML = '<div class="no-songs">Please select audio files to play</div>';
         }
     }
 
