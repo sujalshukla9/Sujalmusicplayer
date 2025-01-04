@@ -76,11 +76,67 @@ class MusicPlayer {
 
     async selectFolder() {
         try {
-            const dirHandle = await window.showDirectoryPicker();
-            await this.loadSongs(dirHandle);
+            // Check if File System Access API is supported
+            if ('showDirectoryPicker' in window) {
+                const dirHandle = await window.showDirectoryPicker();
+                await this.loadSongs(dirHandle);
+            } else {
+                // Fallback for devices without File System Access API
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'audio/*';
+                input.webkitdirectory = true; // For older browsers
+                input.directory = true; // For newer browsers
+
+                input.onchange = async (e) => {
+                    const files = Array.from(e.target.files).filter(file => 
+                        file.type.startsWith('audio/') || 
+                        file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
+                    );
+
+                    if (files.length === 0) {
+                        this.songsList.innerHTML = '<div class="no-songs">No music files found</div>';
+                        return;
+                    }
+
+                    // Clear existing songs
+                    this.songsList.innerHTML = '';
+                    this.songs = [];
+
+                    // Process each file
+                    files.forEach((file, index) => {
+                        const songIndex = this.songs.length;
+                        this.songs.push({ 
+                            handle: file, // Store the File object instead of FileSystemFileHandle
+                            name: file.name 
+                        });
+
+                        const songItem = document.createElement('div');
+                        songItem.className = 'song-item';
+                        songItem.innerHTML = `
+                            <div class="song-art">
+                                <img src="assets/default-album-art.png" alt="Album Art">
+                            </div>
+                            <div class="song-info">
+                                <span class="song-name">${file.name}</span>
+                                <span class="song-artist">Unknown Artist</span>
+                            </div>
+                        `;
+
+                        songItem.addEventListener('click', () => this.playSong(songIndex));
+                        this.songsList.appendChild(songItem);
+                        this.loadSongMetadata(file, songItem);
+                    });
+                };
+
+                input.click();
+            }
             this.songsList.style.display = 'block';
         } catch (error) {
             console.error('Error selecting folder:', error);
+            // Show user-friendly error message
+            this.songsList.innerHTML = '<div class="no-songs">Unable to access files. Please try again.</div>';
         }
     }
 
@@ -165,12 +221,12 @@ class MusicPlayer {
             const songItems = this.songsList.querySelectorAll('.song-item');
             songItems.forEach(item => item.classList.remove('playing'));
             
-            // Add playing class to selected song and scroll into view
-            const selectedItem = songItems[index];
-            selectedItem.classList.add('playing');
-            selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Add playing class to selected song
+            songItems[index].classList.add('playing');
+            songItems[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-            const file = await song.handle.getFile();
+            // Get the file (handles both FileSystemFileHandle and File objects)
+            const file = song.handle instanceof File ? song.handle : await song.handle.getFile();
             const audioUrl = URL.createObjectURL(file);
 
             // Update audio source and play immediately
