@@ -76,19 +76,31 @@ class MusicPlayer {
 
     async selectFolder() {
         try {
-            // Check if it's a mobile device
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Create file input element
+            if (!isMobile && window.showDirectoryPicker) {
+                // Use modern directory picker API for desktop browsers that support it
+                try {
+                    const dirHandle = await window.showDirectoryPicker();
+                    await this.loadSongs(dirHandle);
+                    return;
+                } catch (e) {
+                    console.log('Directory picker failed, falling back to file input');
+                    // Fall through to file input method if directory picker fails
+                }
+            }
+            
+            // Fallback to file input method
             const input = document.createElement('input');
             input.type = 'file';
             input.multiple = true;
-            input.accept = 'audio/*,.mp3,.wav,.ogg,.m4a'; // Explicitly list audio formats
+            input.accept = 'audio/*,.mp3,.wav,.ogg,.m4a';
             
-            // Only add directory attributes for desktop browsers
             if (!isMobile) {
-                input.webkitdirectory = true;
-                input.directory = true;
+                // Set these attributes for desktop browsers
+                input.setAttribute('webkitdirectory', '');
+                input.setAttribute('directory', '');
+                input.setAttribute('mozdirectory', '');
             }
 
             // Use promise to handle file selection
