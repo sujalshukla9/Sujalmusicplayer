@@ -92,16 +92,40 @@ class MusicPlayer {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (!isMobile) {
-                // Try all possible directory attributes for maximum browser compatibility
+                // For desktop: try directory selection
                 try {
-                    input.webkitdirectory = true;
-                    input.directory = true;
-                    input.mozdirectory = true;
-                    input.setAttribute('webkitdirectory', '');
-                    input.setAttribute('directory', '');
-                    input.setAttribute('mozdirectory', '');
+                    if (window.showDirectoryPicker) {
+                        const dirHandle = await window.showDirectoryPicker();
+                        const files = [];
+                        
+                        // Recursively get all files from the directory
+                        async function getFilesRecursively(dirHandle) {
+                            for await (const entry of dirHandle.values()) {
+                                if (entry.kind === 'file') {
+                                    const file = await entry.getFile();
+                                    if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+                                        files.push(file);
+                                    }
+                                } else if (entry.kind === 'directory') {
+                                    await getFilesRecursively(entry);
+                                }
+                            }
+                        }
+                        
+                        await getFilesRecursively(dirHandle);
+                        
+                        if (files.length > 0) {
+                            this.handleFiles(files);
+                            return;
+                        }
+                    } else {
+                        // Fallback to directory input for older desktop browsers
+                        input.webkitdirectory = true;
+                        input.directory = true;
+                        input.mozdirectory = true;
+                    }
                 } catch (e) {
-                    console.log('Directory attributes not supported, falling back to file input');
+                    console.log('Directory selection not supported, falling back to file input');
                 }
             }
 
@@ -111,56 +135,62 @@ class MusicPlayer {
                 input.click();
             });
 
-            if (!files || files.length === 0) {
-                this.songsList.innerHTML = '<div class="no-songs">No files selected</div>';
-                return;
-            }
+            await this.handleFiles(files);
 
-            // Filter audio files
-            const audioFiles = files.filter(file => 
-                file.type.startsWith('audio/') || 
-                file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
-            );
-
-            if (audioFiles.length === 0) {
-                this.songsList.innerHTML = '<div class="no-songs">No music files found</div>';
-                return;
-            }
-
-            // Clear existing songs
-            this.songsList.innerHTML = '';
-            this.songs = [];
-
-            // Process each file
-            audioFiles.forEach((file) => {
-                const songIndex = this.songs.length;
-                this.songs.push({ 
-                    handle: file,
-                    name: file.name 
-                });
-
-                const songItem = document.createElement('div');
-                songItem.className = 'song-item';
-                songItem.innerHTML = `
-                    <div class="song-art">
-                        <img src="assets/default-album-art.png" alt="Album Art">
-                    </div>
-                    <div class="song-info">
-                        <span class="song-name">${file.name}</span>
-                        <span class="song-artist">Unknown Artist</span>
-                    </div>
-                `;
-
-                songItem.addEventListener('click', () => this.playSong(songIndex));
-                this.songsList.appendChild(songItem);
-                this.loadSongMetadata(file, songItem);
-            });
-
-            this.songsList.style.display = 'block';
         } catch (error) {
             console.error('Error selecting folder:', error);
             this.songsList.innerHTML = '<div class="no-songs">Please select audio files to play</div>';
         }
+    }
+
+    // Add this new method to handle files
+    async handleFiles(files) {
+        if (!files || files.length === 0) {
+            this.songsList.innerHTML = '<div class="no-songs">No files selected</div>';
+            return;
+        }
+
+        // Filter audio files
+        const audioFiles = files.filter(file => 
+            file.type.startsWith('audio/') || 
+            file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
+        );
+
+        if (audioFiles.length === 0) {
+            this.songsList.innerHTML = '<div class="no-songs">No music files found</div>';
+            return;
+        }
+
+        // Clear existing songs
+        this.songsList.innerHTML = '';
+        this.songs = [];
+
+        // Process each file
+        audioFiles.forEach((file) => {
+            const songIndex = this.songs.length;
+            this.songs.push({ 
+                handle: file,
+                name: file.name 
+            });
+
+            const songItem = document.createElement('div');
+            songItem.className = 'song-item';
+            songItem.innerHTML = `
+                <div class="song-art">
+                    <img src="assets/default-album-art.png" alt="Album Art">
+                </div>
+                <div class="song-info">
+                    <span class="song-name">${file.name}</span>
+                    <span class="song-artist">Unknown Artist</span>
+                </div>
+            `;
+
+            songItem.addEventListener('click', () => this.playSong(songIndex));
+            this.songsList.appendChild(songItem);
+            this.loadSongMetadata(file, songItem);
+        });
+
+        this.songsList.style.display = 'block';
     }
 
     async loadSongs(dirHandle) {
