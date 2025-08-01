@@ -1,4 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- SMOOTH SCROLL INITIALIZATION ---
+    const lenis = new Lenis();
+    function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // --- ENTRANCE ANIMATIONS ---
+    const animatedElements = document.querySelectorAll('[data-animate]');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+            }
+        });
+    }, { threshold: 0.1 });
+    animatedElements.forEach(el => observer.observe(el));
+
+
     // --- SERVICE WORKER REGISTRATION ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -180,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         playlistContainer.innerHTML = songsToRender.map((song) => `
-            <div class="playlist-item" data-index="${song.originalIndex}">
+            <div class="playlist-item" data-index="${song.originalIndex}" data-animate>
                 <img src="${song.albumArt || 'https://placehold.co/80x80/1e293b/ffffff?text=🎵'}" alt="Art" class="playlist-album-art">
                 <div class="playlist-track-info">
                     <div class="playlist-title">${song.title || 'Unknown Title'}</div>
@@ -188,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `).join('');
+        // Re-observe new playlist items for animations
+        playlistContainer.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
         updateActivePlaylistItem();
     };
 
@@ -392,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         currentIndex = playlist.findIndex(song => song.url === currentSongUrl) ?? 0;
         
-        filterPlaylist(); // Re-apply search filter after shuffling
+        filterPlaylist();
         updateActivePlaylistItem();
         saveSettings();
     };
