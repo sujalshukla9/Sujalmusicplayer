@@ -282,8 +282,8 @@ html.dark .playlist-item:hover {
     overflow: hidden;
     top: 0; /* Reset top to 0 */
     height: 50%;
-    width: 50%; /* Scales with the viewport width */
-    max-width: 50%; /* But won't get larger than this on bigger phones */
+    width: 80%; /* Scales with the viewport width */
+    max-width: 100%; /* But won't get larger than this on bigger phones */
     aspect-ratio: 1 / 1; /* Maintains a perfect square */
     border-radius: 20px;
     overflow: hidden;
@@ -493,3 +493,4 @@ html.dark .enhancer-checkbox:checked + .btn-enhancer {
 
     #track-title { font-size: 1.75rem; }
 }
+
