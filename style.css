@@ -265,6 +265,7 @@ html.dark .playlist-item:hover {
 }
 
 #player-ui {
+    padding-top: 20%;
     width: 100%;
     max-width: 450px;
     margin: 0 auto;
@@ -487,3 +488,4 @@ html.dark .enhancer-checkbox:checked + .btn-enhancer {
 
     #track-title { font-size: 1.75rem; }
 }
+
